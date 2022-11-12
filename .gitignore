@@ -1,0 +1,9 @@
+# 导出目录
+/dist
+# MacOS
+.DS_Store
+
+# Node.JS
+/node_modules
+
+/_virtual
