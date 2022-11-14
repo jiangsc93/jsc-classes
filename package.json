@@ -1,6 +1,6 @@
 {
     "name": "jsc-classes",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "工具类库",
     "scripts": {
         "build": "rollup -c",
