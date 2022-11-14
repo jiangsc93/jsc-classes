@@ -1,6 +1,6 @@
-import { arrayRemove as arrayRemove_1, arrayEach as arrayEach_1 } from './node_modules/jsc-utils/array.mjs';
-import { objectAssign as objectAssign_1 } from './node_modules/jsc-utils/object.mjs';
-import { t as type } from './node_modules/jsc-utils/type.mjs';
+import { arrayRemove, arrayEach } from 'jsc-utils/array';
+import { objectAssign } from 'jsc-utils/object';
+import { isFunction, isString, isNull, isUndefined } from 'jsc-utils/type';
 
 const GLOBAL_EVENTS_TYPE = Symbol();
 const eventsDefaults = {
@@ -20,7 +20,7 @@ const _dispatchType = Symbol();
 const _dispatchChannel = Symbol();
 class Events {
     constructor(options) {
-        this[_options] = objectAssign_1({}, eventsDefaults, options);
+        this[_options] = objectAssign({}, eventsDefaults, options);
         this[_eventsStore] = {};
         this[_eventsPipeList] = [];
         this[_eventsChannelList] = [];
@@ -37,15 +37,15 @@ class Events {
      * @param {EventsListener} listener
      * @returns {Events}
      */
-    on(type$1, listener) {
+    on(type, listener) {
         let _type;
         let _listener;
-        if (type.isFunction(type$1)) {
-            _listener = type$1;
+        if (isFunction(type)) {
+            _listener = type;
             _type = GLOBAL_EVENTS_TYPE;
         }
         else {
-            _type = type$1;
+            _type = type;
             _listener = listener;
         }
         const store = this[_getStoreByType](_type);
@@ -75,18 +75,18 @@ class Events {
      * @param {EventsListener} listener
      * @returns {Events}
      */
-    off(type$1, listener) {
-        if (type.isString(type$1) && type.isFunction(listener))
-            this[_offOne](type$1, listener);
-        else if (type.isString(type$1))
-            this[_offBatch](type$1);
+    off(type, listener) {
+        if (isString(type) && isFunction(listener))
+            this[_offOne](type, listener);
+        else if (isString(type))
+            this[_offBatch](type);
         else
             this[_offAll]();
         return this;
     }
     [_offOne](type, listener) {
         const store = this[_getStoreByType](type);
-        arrayRemove_1(store, (val) => val === listener);
+        arrayRemove(store, (val) => val === listener);
     }
     [_offBatch](type) {
         delete this[_eventsStore][type];
@@ -117,10 +117,10 @@ class Events {
     [_dispatchType](pipable, type, ...payloads) {
         const store = this[_getStoreByType](type);
         const { delimiter } = this[_options];
-        arrayEach_1(store.slice(), (listener) => {
+        arrayEach(store.slice(), (listener) => {
             if (pipable) {
                 // 事件传递
-                arrayEach_1(this[_eventsPipeList].slice(), (piper) => {
+                arrayEach(this[_eventsPipeList].slice(), (piper) => {
                     const { next, namespace = '' } = piper;
                     const ns = [type];
                     if (namespace)
@@ -166,7 +166,7 @@ class Events {
         if (this.parent) {
             throw new Error('信道实例不能再创建新的信道');
         }
-        const { source, target, extend = false, inherit = false } = objectAssign_1({}, options);
+        const { source, target, extend = false, inherit = false } = objectAssign({}, options);
         if (id === source) {
             throw new Error('当前信道 id 不能和源头信道 id 相等');
         }
@@ -201,10 +201,10 @@ class Events {
      * @param {any} payloads
      * @private
      */
-    [_dispatchChannel](imcommingChannel, type$1, ...payloads) {
+    [_dispatchChannel](imcommingChannel, type, ...payloads) {
         const { targetFirst } = this[_options];
         const { id, target } = imcommingChannel;
-        const isEmpty = (any) => type.isNull(any) || type.isUndefined(any);
+        const isEmpty = (any) => isNull(any) || isUndefined(any);
         this[_eventsChannelList].forEach((outgoingChannel) => {
             // 来信道为自身信道：不会收到信道消息
             if (outgoingChannel.id === id)
@@ -213,11 +213,11 @@ class Events {
             if (isEmpty(target)) {
                 // 去信道未指定源头信道：可以接收任意来信道
                 if (isEmpty(outgoingChannel.source)) {
-                    outgoingChannel[_dispatchType](false, type$1, ...payloads);
+                    outgoingChannel[_dispatchType](false, type, ...payloads);
                 }
                 // 去信道指定了源头信道：可以接收指定来信道
                 else if (outgoingChannel.source === id) {
-                    outgoingChannel[_dispatchType](false, type$1, ...payloads);
+                    outgoingChannel[_dispatchType](false, type, ...payloads);
                 }
             }
             // 来信道指定了目标信道：只能发给指定去信道
@@ -227,7 +227,7 @@ class Events {
                 // 也就是说 source 优先级 > target 优先级
                 if (!isEmpty(outgoingSource) && outgoingSource !== target && !targetFirst)
                     return;
-                outgoingChannel[_dispatchType](false, type$1, ...payloads);
+                outgoingChannel[_dispatchType](false, type, ...payloads);
             }
         });
     }

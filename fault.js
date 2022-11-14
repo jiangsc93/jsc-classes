@@ -1,6 +1,6 @@
 'use strict';
 
-var type = require('./node_modules/jsc-utils/type.js');
+var type = require('jsc-utils/type');
 
 let id = 1;
 class Fault extends Error {
@@ -10,14 +10,14 @@ class Fault extends Error {
         this.name = 'Fault';
         this.type = 'Fault';
         this.message = '';
-        if (type.type.isObject(message)) {
+        if (type.isObject(message)) {
             Object.assign(this, message);
         }
-        else if (type.type.isString(message)) {
+        else if (type.isString(message)) {
             this.message = message;
         }
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        if (type.type.isFunction(Error.captureStackTrace))
+        if (type.isFunction(Error.captureStackTrace))
             Error.captureStackTrace(this, new.target);
     }
     toString() {

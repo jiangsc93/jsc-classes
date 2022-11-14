@@ -1,4 +1,4 @@
-import { t as type } from './node_modules/jsc-utils/type.mjs';
+import { isObject, isString, isFunction } from 'jsc-utils/type';
 
 let id = 1;
 class Fault extends Error {
@@ -8,14 +8,14 @@ class Fault extends Error {
         this.name = 'Fault';
         this.type = 'Fault';
         this.message = '';
-        if (type.isObject(message)) {
+        if (isObject(message)) {
             Object.assign(this, message);
         }
-        else if (type.isString(message)) {
+        else if (isString(message)) {
             this.message = message;
         }
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        if (type.isFunction(Error.captureStackTrace))
+        if (isFunction(Error.captureStackTrace))
             Error.captureStackTrace(this, new.target);
     }
     toString() {

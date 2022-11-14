@@ -3,7 +3,8 @@
     "version": "1.1.0",
     "description": "工具类库",
     "scripts": {
-        "build": "rollup -c"
+        "build": "rollup -c",
+        "test": "jest"
     },
     "main": "index.js",
     "module": "index.mjs",
@@ -32,10 +33,13 @@
     ],
     "author": "蒋少川",
     "maintainers": [],
-    "repository": "https://github.com/jiangsc93/jsc-classes.git",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jiangsc93/jsc-classes.git"
+    },
     "license": "MIT",
     "dependencies": {
-        "jsc-utils": "^1.1.0"
+        "jsc-utils": "^1.1.1"
     },
     "devDependencies": {
         "@babel/core": "^7.9.6",

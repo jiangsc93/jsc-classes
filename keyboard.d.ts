@@ -1,31 +1,44 @@
-import { arrayRemove } from 'jsc-utils/array';
-import { objectMerge } from 'jsc-utils/object';
-import { isString } from 'jsc-utils/type';
-
 /**
  * 键盘快捷键类
  * @ref https://github.com/RobertWHurst/KeyboardJS
  */
+
+import { arrayRemove } from 'jsc-utils/array';
+import { objectMerge } from 'jsc-utils/object';
+import { AnyFunc, isString } from 'jsc-utils/type';
+
 //=========================
 // environment
 //=========================
 const { userAgent } = navigator;
-const isMac = /Mac/i.test(userAgent);
-const isSafari = /Safari/i.test(userAgent);
-const isChrome = /Chrome/i.test(userAgent);
-const isOpera = /Opera/i.test(userAgent);
-const isFirefox = /Firefox/i.test(userAgent);
+export const isMac = /Mac/i.test(userAgent);
+export const isSafari = /Safari/i.test(userAgent);
+export const isChrome = /Chrome/i.test(userAgent);
+export const isOpera = /Opera/i.test(userAgent);
+export const isFirefox = /Firefox/i.test(userAgent);
 const o = () => Object.create(null);
 const KEY_BIND_STR = '+';
 const KEY_COMBO_STR = ':';
-const keyCodeNamesMap = o();
-const keyNameCodeMap = o();
-const bindKeyCode = (keyCode, keyNames) => {
+
+//=========================
+// key code map
+//=========================
+interface KeyCodeNamesMap {
+    [keyCode: number]: string[];
+}
+interface KeyNameCodeMap {
+    [keyName: string]: number;
+}
+
+const keyCodeNamesMap: KeyCodeNamesMap = o();
+const keyNameCodeMap: KeyNameCodeMap = o();
+const bindKeyCode = (keyCode: number, keyNames: string[]) => {
     keyCodeNamesMap[keyCode] = keyNames;
     keyNames.forEach((keyName) => {
         keyNameCodeMap[keyName] = keyCode;
     });
 };
+
 // general
 bindKeyCode(3, ['cancel']);
 bindKeyCode(8, ['backspace', '⌫']);
@@ -60,6 +73,7 @@ bindKeyCode(219, ['openbracket', '[', '{']);
 bindKeyCode(220, ['backslash', '\\', '|']);
 bindKeyCode(221, ['closebracket', ']', '}']);
 bindKeyCode(222, ['apostrophe', "'", '"']);
+
 // 0-9
 bindKeyCode(48, ['zero', '0', ')']);
 bindKeyCode(49, ['one', '1', '!']);
@@ -71,6 +85,7 @@ bindKeyCode(54, ['six', '6', '^']);
 bindKeyCode(55, ['seven', '7', '&']);
 bindKeyCode(56, ['eight', '8', '*']);
 bindKeyCode(57, ['nine', '9', '(']);
+
 // numpad
 bindKeyCode(96, ['numzero', 'num0']);
 bindKeyCode(97, ['numone', 'num1']);
@@ -89,6 +104,7 @@ bindKeyCode(109, ['numsubtract', 'num-']);
 bindKeyCode(110, ['numdecimal', 'num.']);
 bindKeyCode(111, ['numdivide', 'num/']);
 bindKeyCode(144, ['numlock', 'num']);
+
 // function keys
 bindKeyCode(112, ['f1']);
 bindKeyCode(113, ['f2']);
@@ -114,35 +130,48 @@ bindKeyCode(132, ['f21']);
 bindKeyCode(133, ['f22']);
 bindKeyCode(134, ['f23']);
 bindKeyCode(135, ['f24']);
+
 //a-z and A-Z
 for (let keyCode = 65; keyCode <= 90; keyCode += 1) {
     const keyName = String.fromCharCode(keyCode + 32).toLowerCase();
     bindKeyCode(keyCode, [keyName]);
 }
+
 const semicolonKeyCode = isFirefox ? 59 : 186;
 const dashKeyCode = isFirefox ? 173 : 189;
 const equalKeyCode = isFirefox ? 61 : 187;
+
 bindKeyCode(semicolonKeyCode, ['semicolon', 'semi', ';', ':']);
 bindKeyCode(dashKeyCode, ['dash', '-', '_']);
 bindKeyCode(equalKeyCode, ['equal', 'equalsign', '=']);
+
 /**
  * 根据键值或者键名
  * @param {number} keycode
  * @returns {string[]}
  */
-function getKeyNamesByCode(keycode) {
+export function getKeyNamesByCode(keycode: number): string[] {
     return keyCodeNamesMap[keycode] || [];
 }
+
 /**
  * 根据键名获取键值
  * @param {string} keyName
  * @returns {number}
  */
-function getKeyCodeByName(keyName) {
+export function getKeyCodeByName(keyName: string): number {
     return keyNameCodeMap[keyName.toLowerCase()] || 0;
 }
-const modifiedKeyNameAliasMap = o();
-const bindKeyNameAlias = (stdName, aliases) => {
+
+//=========================
+// key name alias map
+//=========================
+type ModifiedKeyName = 'alt' | 'ctrl' | 'meta' | 'shift';
+interface ModifiedKeyNameAliasMap {
+    [aliasModifiedKeyName: string]: ModifiedKeyName;
+}
+const modifiedKeyNameAliasMap: ModifiedKeyNameAliasMap = o();
+const bindKeyNameAlias = (stdName: ModifiedKeyName, aliases: string[]) => {
     modifiedKeyNameAliasMap[stdName] = stdName;
     aliases.forEach((alias) => (modifiedKeyNameAliasMap[alias] = stdName));
 };
@@ -150,14 +179,31 @@ const ALT_KEY_NAME = 'alt';
 const CTRL_KEY_NAME = 'ctrl';
 const META_KEY_NAME = 'meta';
 const SHIFT_KEY_NAME = 'shift';
+
 bindKeyNameAlias(ALT_KEY_NAME, ['menu', 'option', '⌥']);
 bindKeyNameAlias(CTRL_KEY_NAME, ['control', '⌃']);
 bindKeyNameAlias(META_KEY_NAME, ['command', 'cmd', 'windows', 'win', 'super', '⌘', '', '⊞']);
 bindKeyNameAlias(SHIFT_KEY_NAME, ['⇪']);
-const defaults = {
+
+//=========================
+// Keyboard
+//=========================
+export type KeyboardEl = HTMLElement | Document | Window;
+interface KeyboardOptions<T> {
+    // 快捷键绑定对象，默认是 document
+    el: T;
+    // 组合键超时时间，单位是毫秒，默认是 500
+    timeout: number;
+}
+
+export type KeyboardShortcuts = string | string[];
+export type KeyboardHandler<T> = (this: T, ev: KeyboardEvent) => void;
+
+export const defaults: KeyboardOptions<Document> = {
     el: document,
     timeout: 500
 };
+
 const _options = Symbol();
 const _init = Symbol();
 const _onKeyDown = Symbol();
@@ -172,54 +218,71 @@ const _unbindAll = Symbol();
 const _comboKeyPathList = Symbol();
 const _comboKeyPath = Symbol();
 const _comboTimer = Symbol();
-class Keyboard {
-    constructor(options) {
-        this[_options] = objectMerge(o(), defaults, options);
+
+type KeyInfo = Partial<
+    Record<ModifiedKeyName, boolean> & {
+        code: number;
+    }
+>;
+
+export default class Keyboard<T extends KeyboardEl> {
+    private [_options]: KeyboardOptions<T>;
+    private [_bindingList]: [T, string, AnyFunc][];
+    private [_keyPathHandlerObj]: { [keyCodePath: string]: KeyboardHandler<T>[] };
+    private [_comboKeyPathList]: string[];
+    private [_comboTimer]: number;
+
+    constructor(options?: Partial<KeyboardOptions<T>>) {
+        this[_options] = objectMerge<KeyboardOptions<T>>(o(), defaults, options);
         this[_bindingList] = [];
         this[_keyPathHandlerObj] = o();
         this[_comboKeyPathList] = [];
         this[_comboTimer] = 0;
         this[_init]();
     }
+
     /**
      * 绑定快捷键
      * @param {KeyboardShortcuts} shortcuts
      * @param {KeyboardHandler<T>} handler
      * @returns {Keyboard<T>}
      */
-    bind(shortcuts, handler) {
+    bind(shortcuts: KeyboardShortcuts, handler: KeyboardHandler<T>): Keyboard<T> {
         const keyInfoList = this[_shortcutsToKeyInfoList](shortcuts);
         const keyPath = this[_keyInfoListToKeyPath](keyInfoList);
         const { [keyPath]: handlerList = [] } = this[_keyPathHandlerObj];
+
         handlerList.push(handler);
         this[_keyPathHandlerObj][keyPath] = handlerList;
+
         return this;
     }
+
     /**
      * 解除快捷键绑定
      * @param {KeyboardShortcuts} shortcuts
      * @param {KeyboardHandler<T>} handler
      * @returns {Keyboard<T>}
      */
-    unbind(shortcuts, handler) {
+    unbind(shortcuts?: KeyboardShortcuts, handler?: KeyboardHandler<T>): Keyboard<T> {
         if (shortcuts && handler) {
             this[_unbindOne](shortcuts, handler);
-        }
-        else if (shortcuts) {
+        } else if (shortcuts) {
             this[_unbindBatch](shortcuts);
-        }
-        else {
+        } else {
             this[_unbindAll]();
         }
+
         return this;
     }
+
     /**
      * 销毁
      * 1. 解除 DOM 上的事件绑定
      * 2. 解除所有快捷键对应关系
      * 3. 清除计时器
      */
-    destroy() {
+    destroy(): void {
         // 1.
         this[_bindingList].forEach(([el, type, listener]) => {
             el.removeEventListener(type, listener);
@@ -227,124 +290,135 @@ class Keyboard {
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         this[_bindingList] = null;
+
         // 2.
         this.unbind();
+
         // 3.
         clearTimeout(this[_comboTimer]);
     }
-    [_unbindOne](shortcuts, handler) {
+
+    [_unbindOne](shortcuts: KeyboardShortcuts, handler: KeyboardHandler<T>) {
         const keyInfoList = this[_shortcutsToKeyInfoList](shortcuts);
         const keyPath = this[_keyInfoListToKeyPath](keyInfoList);
         const { [keyPath]: handlers } = this[_keyPathHandlerObj];
-        if (!handlers)
-            return;
+
+        if (!handlers) return;
+
         arrayRemove(handlers, (el) => el === handler);
     }
-    [_unbindBatch](shortcuts) {
+
+    [_unbindBatch](shortcuts: KeyboardShortcuts) {
         const keyInfoList = this[_shortcutsToKeyInfoList](shortcuts);
         const keyPath = this[_keyInfoListToKeyPath](keyInfoList);
         const { [keyPath]: handlers } = this[_keyPathHandlerObj];
-        if (!handlers)
-            return;
+
+        if (!handlers) return;
+
         this[_keyPathHandlerObj][keyPath] = [];
     }
+
     [_unbindAll]() {
         this[_keyPathHandlerObj] = o();
     }
+
     [_init]() {
         const { el } = this[_options];
         const onKeyDown = this[_onKeyDown].bind(this);
+
         this[_bindingList].push([el, 'keydown', onKeyDown]);
+
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         el.addEventListener('keydown', onKeyDown);
     }
+
     /**
      * 将快捷键转换为键位对象
      * @param {KeyboardShortcuts} shortcuts
      * @returns {KeyInfo}
      */
-    [_shortcutsToKeyInfoList](shortcuts) {
+    [_shortcutsToKeyInfoList](shortcuts: KeyboardShortcuts): KeyInfo[] {
         const shortcutsList = isString(shortcuts) ? [shortcuts] : shortcuts;
+
         return shortcutsList.map((shortcuts) => {
-            const keyInfo = o();
+            const keyInfo: KeyInfo = o();
             shortcuts
                 .toLowerCase()
                 .replace(/\s/g, '')
                 .split(KEY_BIND_STR)
                 .forEach((keyName) => {
-                const modifiedKeyName = modifiedKeyNameAliasMap[keyName];
-                if (modifiedKeyName)
-                    keyInfo[modifiedKeyName] = true;
-                else
-                    keyInfo.code = getKeyCodeByName(keyName);
-            });
+                    const modifiedKeyName = modifiedKeyNameAliasMap[keyName];
+
+                    if (modifiedKeyName) keyInfo[modifiedKeyName] = true;
+                    else keyInfo.code = getKeyCodeByName(keyName);
+                });
             return keyInfo;
         });
     }
+
     /**
      * 将键位对象转换为键路径
      * @param {KeyInfo} keyInfoList
      * @returns {string[]}
      */
-    [_keyInfoListToKeyPath](keyInfoList) {
+    [_keyInfoListToKeyPath](keyInfoList: KeyInfo[]): string {
         return keyInfoList
             .map((keyInfo) => {
-            const keyPath = [];
-            if (keyInfo.alt)
-                keyPath.push(ALT_KEY_NAME);
-            if (keyInfo.ctrl)
-                keyPath.push(CTRL_KEY_NAME);
-            if (keyInfo.meta)
-                keyPath.push(META_KEY_NAME);
-            if (keyInfo.shift)
-                keyPath.push(SHIFT_KEY_NAME);
-            if (keyInfo.code)
-                keyPath.push(keyInfo.code.toString());
-            return keyPath.join(KEY_BIND_STR);
-        })
+                const keyPath: string[] = [];
+
+                if (keyInfo.alt) keyPath.push(ALT_KEY_NAME);
+                if (keyInfo.ctrl) keyPath.push(CTRL_KEY_NAME);
+                if (keyInfo.meta) keyPath.push(META_KEY_NAME);
+                if (keyInfo.shift) keyPath.push(SHIFT_KEY_NAME);
+                if (keyInfo.code) keyPath.push(keyInfo.code.toString());
+
+                return keyPath.join(KEY_BIND_STR);
+            })
             .join(KEY_COMBO_STR);
     }
-    [_onKeyDown](ev) {
+
+    [_onKeyDown](ev: KeyboardEvent) {
         const { keyCode } = ev;
+
         if (keyCodeNamesMap[keyCode]) {
-            const keyInfo = { code: keyCode };
-            if (ev.altKey)
-                keyInfo.alt = true;
-            if (ev.ctrlKey)
-                keyInfo.ctrl = true;
-            if (ev.metaKey)
-                keyInfo.meta = true;
-            if (ev.shiftKey)
-                keyInfo.shift = true;
+            const keyInfo: KeyInfo = { code: keyCode };
+
+            if (ev.altKey) keyInfo.alt = true;
+            if (ev.ctrlKey) keyInfo.ctrl = true;
+            if (ev.metaKey) keyInfo.meta = true;
+            if (ev.shiftKey) keyInfo.shift = true;
+
             const keyPath = this[_keyInfoListToKeyPath]([keyInfo]);
             this[_callKeyPath](keyPath, ev);
+
             this[_comboKeyPath](keyPath, ev);
         }
     }
+
     /**
      * 组合键判断
      * @param {string} keyPath
      * @param {KeyboardEvent} ev
      */
-    [_comboKeyPath](keyPath, ev) {
+    [_comboKeyPath](keyPath: string, ev: KeyboardEvent) {
         const { timeout } = this[_options];
         clearTimeout(this[_comboTimer]);
         this[_comboKeyPathList].push(keyPath);
         this[_comboTimer] = window.setTimeout(() => {
             this[_comboKeyPathList].length = 0;
         }, timeout);
-        if (this[_comboKeyPathList].length < 2)
-            return;
+
+        if (this[_comboKeyPathList].length < 2) return;
+
         const comboKeyPath = this[_comboKeyPathList].join(KEY_COMBO_STR);
         this[_callKeyPath](comboKeyPath, ev);
     }
-    [_callKeyPath](keyPath, ev) {
+
+    [_callKeyPath](keyPath: string, ev: KeyboardEvent) {
         const { el } = this[_options];
         const handlerList = this[_keyPathHandlerObj][keyPath];
-        if (handlerList)
-            handlerList.forEach((handler) => handler.call(el, ev));
+
+        if (handlerList) handlerList.forEach((handler) => handler.call(el, ev));
     }
 }
-
-export { Keyboard as default, defaults, getKeyCodeByName, getKeyNamesByCode, isChrome, isFirefox, isMac, isOpera, isSafari };

@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var object = require('./node_modules/jsc-utils/object.js');
+var object = require('jsc-utils/object');
 
 const defaults = {
     maxLength: 99

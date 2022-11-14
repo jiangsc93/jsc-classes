@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var array = require('./node_modules/jsc-utils/array.js');
-var object = require('./node_modules/jsc-utils/object.js');
-var type = require('./node_modules/jsc-utils/type.js');
+var array = require('jsc-utils/array');
+var object = require('jsc-utils/object');
+var type = require('jsc-utils/type');
 
 /**
  * 键盘快捷键类
@@ -269,7 +269,7 @@ class Keyboard {
      * @returns {KeyInfo}
      */
     [_shortcutsToKeyInfoList](shortcuts) {
-        const shortcutsList = type.type.isString(shortcuts) ? [shortcuts] : shortcuts;
+        const shortcutsList = type.isString(shortcuts) ? [shortcuts] : shortcuts;
         return shortcutsList.map((shortcuts) => {
             const keyInfo = o();
             shortcuts

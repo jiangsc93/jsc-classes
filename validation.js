@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var array = require('./node_modules/jsc-utils/array.js');
-var object = require('./node_modules/jsc-utils/object.js');
-var type = require('./node_modules/jsc-utils/type.js');
-var validator = require('./node_modules/jsc-utils/validator.js');
-var string = require('./node_modules/jsc-utils/string.js');
+var array = require('jsc-utils/array');
+var object = require('jsc-utils/object');
+var type = require('jsc-utils/type');
+var validator = require('jsc-utils/validator');
+var string = require('jsc-utils/string');
 var fault = require('./fault.js');
 
 const MEMBER_MESSAGES = {
@@ -38,14 +38,14 @@ const TYPE_NAME_MAP = {
     regExp: '正则'
 };
 const TYPE_VALIDATORS = {
-    string: type.type.isString,
-    number: type.type.isNumber,
-    boolean: type.type.isBoolean,
-    object: type.type.isObject,
-    array: type.type.isArray,
-    date: type.type.isDate,
-    method: type.type.isFunction,
-    regExp: type.type.isRegExp
+    string: type.isString,
+    number: type.isNumber,
+    boolean: type.isBoolean,
+    object: type.isObject,
+    array: type.isArray,
+    date: type.isDate,
+    method: type.isFunction,
+    regExp: type.isRegExp
 };
 const FORMAT_NAME_MAP = {
     url: ' URL 地址',
@@ -76,27 +76,27 @@ const defaults = {
     fields: undefined
 };
 const isEmpty = (value) => {
-    if (type.type.isUndefined(value) || type.type.isNull(value) || value === '')
+    if (type.isUndefined(value) || type.isNull(value) || value === '')
         return true;
     if (array.arrayLike(value))
         return value.length === 0;
-    if (type.type.isObject(value))
+    if (type.isObject(value))
         return Object.keys(value).length === 0;
     return false;
 };
 const messageGetter = (messageFunc, message) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
-    if (type.type.isFunction(message))
+    if (type.isFunction(message))
         return message;
-    if (type.type.isString(message))
+    if (type.isString(message))
         return (value, source, rule, schema, msgData) => string.stringAssign(message, msgData);
-    if (type.type.isString(messageFunc))
+    if (type.isString(messageFunc))
         return (value, source, rule, schema, msgData) => string.stringAssign(messageFunc, msgData);
     return messageFunc;
 };
 const limitsGetter1 = (limit1) => {
-    if (type.type.isFunction(limit1))
+    if (type.isFunction(limit1))
         return (value, source, rule, schema) => 
         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
@@ -109,8 +109,8 @@ const limitsGetter2 = (limit1, limit2) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     return (value, source, rule, schema) => {
-        const realLimit1 = type.type.isFunction(limit1) ? limit1(value, source, rule, schema) : limit1;
-        const realLimit2 = type.type.isFunction(limit2) ? limit2(value, source, rule, schema) : limit2;
+        const realLimit1 = type.isFunction(limit1) ? limit1(value, source, rule, schema) : limit1;
+        const realLimit2 = type.isFunction(limit2) ? limit2(value, source, rule, schema) : limit2;
         return [realLimit1, realLimit2];
     };
 };
@@ -118,22 +118,22 @@ const matcherToValidator = (matcher) => {
     return async (value, source, rule, schema, limits) => {
         const result = await matcher(value, source, rule, schema, limits);
         // 返回字符串
-        if (type.type.isString(result)) {
+        if (type.isString(result)) {
             throw new Error(result);
         }
         // 返回一个错误对象
-        if (type.type.isError(result)) {
+        if (type.isError(result)) {
             throw result;
         }
         // 返回一个布尔值
-        if (type.type.isBoolean(result)) {
+        if (type.isBoolean(result)) {
             return result;
         }
         return true;
     };
 };
 const matchSymbol = (obj) => {
-    if (!type.type.isObject(obj))
+    if (!type.isObject(obj))
         return false;
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
@@ -142,7 +142,7 @@ const matchSymbol = (obj) => {
     return Object.getOwnPropertySymbols(obj).some((symbol) => String(symbol) === String(VALIDATION_FLAG));
 };
 const isValidationRules = (rules) => {
-    if (type.type.isObject(rules))
+    if (type.isObject(rules))
         return false;
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
@@ -304,7 +304,7 @@ class Validation {
     type(type$1, message) {
         this._createRule('type', {
             validator: (value, source, rule, schema, msgData) => {
-                if (type.type.isUndefined(value) || type.type.isNull(value))
+                if (type.isUndefined(value) || type.isNull(value))
                     return true;
                 const [type$1] = msgData.limits;
                 return TYPE_VALIDATORS[type$1](value);
@@ -516,7 +516,7 @@ class Validation {
                 if (isEmpty(value))
                     return true;
                 const [pattern] = msgData.limits;
-                if (type.type.isRegExp(pattern))
+                if (type.isRegExp(pattern))
                     return pattern.test(value);
                 return value.indexOf(pattern) > -1;
             },
@@ -607,7 +607,7 @@ class Validation {
         const { _currentRule } = this;
         if (!_currentRule)
             throw new Error('必须先指定验证规则');
-        _currentRule.enable = type.type.isFunction(enable) ? enable : () => enable;
+        _currentRule.enable = type.isFunction(enable) ? enable : () => enable;
         return this;
     }
     /**
@@ -631,7 +631,7 @@ class Validation {
         const { _currentDesc } = this;
         if (!_currentDesc)
             throw new Error('必须先指定验证字段');
-        _currentDesc.usable = type.type.isFunction(usable) ? usable : () => usable;
+        _currentDesc.usable = type.isFunction(usable) ? usable : () => usable;
         return this;
     }
     /**
@@ -664,15 +664,15 @@ class Validation {
             });
         };
         // validate(source, options, callback);
-        if (type.type.isObject(options) && type.type.isFunction(callback)) {
+        if (type.isObject(options) && type.isFunction(callback)) {
             return callbackMode(options, callback);
         }
         // validate(source, options);
-        if (type.type.isObject(options)) {
+        if (type.isObject(options)) {
             return promiseMode(options);
         }
         // validate(source, callback);
-        if (type.type.isFunction(options)) {
+        if (type.isFunction(options)) {
             return callbackMode({}, options);
         }
         return promiseMode({});
@@ -707,7 +707,7 @@ class Validation {
         const { _schema: schema } = this;
         const exitable = () => (first === true ? faults.length === 1 : false);
         const fieldTest = (field) => {
-            if (!type.type.isArray(fields))
+            if (!type.isArray(fields))
                 return true;
             return fields.some((item) => item === field);
         };
@@ -721,7 +721,7 @@ class Validation {
             return enable(value, source, rule, schema, msgData);
         };
         const triggerTest = (trigger, rule, msgData) => {
-            if (!type.type.isString(trigger))
+            if (!type.isString(trigger))
                 return true;
             if (trigger.length === 0)
                 return true;
@@ -735,7 +735,7 @@ class Validation {
             const { label } = desc;
             const pushFault = (message) => {
                 let realMessage;
-                if (type.type.isString(message))
+                if (type.isString(message))
                     realMessage = string.stringAssign(message, msgData);
                 else
                     realMessage = message(value, source, rule, schema, msgData);
@@ -746,7 +746,7 @@ class Validation {
                     type: type$1
                 }));
             };
-            if (!type.type.isFunction(validator))
+            if (!type.isFunction(validator))
                 return;
             try {
                 const invalid = await validator(value, source, rule, schema, msgData);
@@ -755,7 +755,7 @@ class Validation {
                 }
             }
             catch (err) {
-                if (type.type.isString(err))
+                if (type.isString(err))
                     pushFault(err);
                 else
                     pushFault(err.message);
@@ -870,7 +870,7 @@ const importSchema = (schema) => {
     const adaptMinRule = (rule, rules) => {
         const type$1 = getType(rule, rules);
         const { min, message, trigger } = rule;
-        if (!type.type.isNumber(min))
+        if (!type.isNumber(min))
             return;
         switch (type$1) {
             case 'string':
@@ -887,7 +887,7 @@ const importSchema = (schema) => {
     const adaptMaxRule = (rule, rules) => {
         const type$1 = getType(rule, rules);
         const { max, message, trigger } = rule;
-        if (!type.type.isNumber(max))
+        if (!type.isNumber(max))
             return;
         switch (type$1) {
             case 'string':
@@ -904,7 +904,7 @@ const importSchema = (schema) => {
     const adaptLenRule = (rule, rules) => {
         const type$1 = getType(rule, rules);
         const { len, message, trigger } = rule;
-        if (!type.type.isNumber(len))
+        if (!type.isNumber(len))
             return;
         switch (type$1) {
             case 'string':
@@ -930,7 +930,7 @@ const importSchema = (schema) => {
     const adaptValidatorRule = (rule, rules) => {
         getType(rule, rules);
         const { validator, trigger } = rule;
-        if (!type.type.isFunction(validator))
+        if (!type.isFunction(validator))
             return;
         v.match((value, source, rule1, schema1) => {
             return new Promise((resolve, reject) => {
@@ -953,7 +953,7 @@ const importSchema = (schema) => {
             v._currentRuleList.push(...asyncValidatorRules.rules);
             return;
         }
-        const _rules = type.type.isArray(asyncValidatorRules) ? asyncValidatorRules : [asyncValidatorRules];
+        const _rules = type.isArray(asyncValidatorRules) ? asyncValidatorRules : [asyncValidatorRules];
         _rules.forEach((rule) => {
             const { 
             // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
@@ -1003,7 +1003,7 @@ const importRules = (field, rules) => {
         };
         return importSchema(schema);
     }
-    const rules2 = type.type.isObject(rules) ? [rules] : rules;
+    const rules2 = type.isObject(rules) ? [rules] : rules;
     const schema = { [field]: rules2 };
     return importSchema(schema);
 };
