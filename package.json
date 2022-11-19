@@ -1,6 +1,6 @@
 {
     "name": "jsc-classes",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "description": "工具类库",
     "scripts": {
         "build": "rollup -c",
@@ -28,7 +28,7 @@
         "validation.d.ts"
     ],
     "keywords": [
-        "jsc",
+        "youngriver",
         "classes"
     ],
     "author": "蒋少川",
